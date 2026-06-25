@@ -73,6 +73,7 @@ pub async fn init(cfg: &Config) -> Response {
     res
 }
 
+// Calls the /checkPostalCode endpoint to validate if a given postal code is inside the HVV services area
 pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkPostalCode ");
     let client = reqwest::Client::new();
