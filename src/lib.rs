@@ -1,14 +1,16 @@
+use crate::geofox_models::{PCRequest, PCResponse};
 use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use serde::Serialize;
 use sha1::Sha1;
 use std::str::FromStr;
 
+mod geofox_models;
 pub mod model;
 pub mod timetable;
-
 pub struct Config {
     geofox_user: String,
     geofox_secret: String,
@@ -61,8 +63,8 @@ fn build_auth_header(body: &str, user: &str, pw: &str) -> HeaderMap {
 }
 
 // Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
-pub async fn init(cfg: Config) -> Response {
-    let url = cfg.geofox_url + "/gti/public/init";
+pub async fn init(cfg: &Config) -> Response {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/init");
     let client = reqwest::Client::new();
 
     let header = build_auth_header("{}", &*cfg.geofox_user, &*cfg.geofox_secret);
@@ -73,6 +75,28 @@ pub async fn init(cfg: Config) -> Response {
     };
 
     res
+}
+
+pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkPostalCode ");
+    let client = reqwest::Client::new();
+
+    let body = PCRequest {
+        postalCode: postal_code,
+        version: 63,
+    };
+    let ser = serde_json::to_string(&body).unwrap();
+
+    let header = build_auth_header(&ser, &*cfg.geofox_user, &*cfg.geofox_secret);
+
+    let res = match client.post(url).headers(header).body(ser).send().await {
+        Ok(res) => res,
+        Err(_) => panic!("CheckPostalCode Request failed"),
+    };
+
+    let response_message: PCResponse = serde_json::from_str(&res.text().await.unwrap()).unwrap();
+
+    response_message.isHVV
 }
 
 #[cfg(test)]
@@ -92,23 +116,38 @@ mod tests {
         assert_eq!(hashed_string, "NluTzK4mYLMjBg6YRe6ROJM9ZuI=");
     }
 
-    #[tokio::test]
-    async fn test_geofox_http_header_login() {
+    fn build_config() -> Config {
         dotenv().ok();
 
         let pw = env::var("GEOFOX_SECRET").expect("PW MUST BE SET");
         let user = env::var("GEOFOX_USER").expect("USER MUST BE SET");
         let url = env::var("GEOFOX_BASEURL").expect("URL MUST BE SET");
 
-        let config = Config {
+        Config {
             geofox_user: user,
             geofox_secret: pw,
             geofox_url: url,
-        };
+        }
+    }
 
-        let response = init(config).await;
+    #[tokio::test]
+    async fn test_geofox_http_header_login() {
+        let config = build_config();
 
+        let response = init(&config).await;
+        println!("{}", response.status());
         assert!(response.status().is_success());
         println!("{}", response.text().await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_check_postal_function() {
+        let config = build_config();
+
+        let should_not_exist = check_postal_code(&config, 12345).await;
+        let shoud_exist = check_postal_code(&config, 20097).await;
+
+        assert!(shoud_exist);
+        assert_eq!(should_not_exist, false);
     }
 }

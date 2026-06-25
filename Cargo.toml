@@ -8,7 +8,7 @@ base64 = "0.22.1"
 dotenv = "0.15.0"
 hmac = "0.13.0"
 reqwest = "0.13.4"
-serde = "1.0.228"
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 sha1 = "0.11.0"
 tokio = { version = "1.52.3", features = ["full"] }

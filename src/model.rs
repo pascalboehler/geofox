@@ -1,3 +1,6 @@
 struct Train {}
 
-pub struct Station {}
+pub struct Station {
+    pub returnCode: bool,
+    pub isHVV: bool,
+}
