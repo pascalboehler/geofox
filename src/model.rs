@@ -1,7 +1,3 @@
-struct Train {
+struct Train {}
 
-}
-
-pub struct Station {
-
-}
+pub struct Station {}
