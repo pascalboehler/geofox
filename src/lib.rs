@@ -60,6 +60,7 @@ fn build_auth_header(body: &str, user: &str, pw: &str) -> HeaderMap {
     header
 }
 
+// Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
 pub async fn init(cfg: Config) -> Response {
     let url = cfg.geofox_url + "/gti/public/init";
     let client = reqwest::Client::new();
@@ -68,7 +69,7 @@ pub async fn init(cfg: Config) -> Response {
 
     let res = match client.post(url).headers(header).body("{}").send().await {
         Ok(resp) => resp,
-        Err(resp) => panic!("Couldnt contact client!"),
+        Err(_) => panic!("Couldnt contact client!"),
     };
 
     res
