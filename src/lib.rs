@@ -17,10 +17,6 @@ pub struct Config {
     geofox_url: String,
 }
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
-
 // Function should receive a json string slice and a password slide, hash it according to geofox and return a base64 encoded string.
 fn hash_body_and_password(body: &str, password: &str) -> String {
     type HmacSha1 = Hmac<Sha1>;
