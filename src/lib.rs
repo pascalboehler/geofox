@@ -1,13 +1,13 @@
-use crate::geofox_models::{LSRequest, LSResponse, PCRequest, PCResponse};
+use crate::geofox_models::{CNRequest, LSRequest, LSResponse, PCRequest, PCResponse};
+use crate::model::Station;
 use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
-use reqwest::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::{Error, Response};
 use serde::Serialize;
 use sha1::Sha1;
 use std::str::FromStr;
-use crate::model::Station;
 
 mod geofox_models;
 pub mod model;
@@ -97,8 +97,42 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
     response_message.isHVV
 }
 
+// Check if a name exists and return the station: /gti/public/checkName
+pub fn check_name(
+    cfg: &Config,
+    search_name: &str,
+    max_search: u16,
+    max_dist: u16,
+    include_tariff_details: bool,
+    allow_type_switch: bool,
+) -> Result<String, String> {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkName");
+    let client = reqwest::Client::new();
+
+    let body = CNRequest {
+        theName: search_name.to_string(),
+        maxListL: max_search,
+        maxDistance: max_dist,
+        coordinateType: "EPSG_4326".to_string(),
+        tariffDetails: include_tariff_details,
+        allowTypeSwitch: allow_type_switch,
+    };
+
+    let body_str = match serde_json::to_string(&body) {
+        Ok(ser) => ser,
+        Err(_) => return Err("Could not serialize body".to_string())
+    };
+
+    //let header = build_auth_header();
+    Err("Function not implemented".to_string())
+}
+
 // /gti/public/listStations
-pub async fn list_stations(cfg: &Config, filter_equivalent_stations: bool, data_release_date: &str) -> Vec<Station> {
+pub async fn list_stations(
+    cfg: &Config,
+    filter_equivalent_stations: bool,
+    data_release_date: &str,
+) -> Vec<Station> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -106,7 +140,7 @@ pub async fn list_stations(cfg: &Config, filter_equivalent_stations: bool, data_
         dataReleaseID: data_release_date.to_string(),
         modificationTypes: vec!["MAIN".to_string()],
         coordinateType: "EPSG_4326".to_string(),
-        filterEquivalent: filter_equivalent_stations
+        filterEquivalent: filter_equivalent_stations,
     };
 
     let serialized_body = serde_json::to_string(&body).unwrap();
@@ -115,9 +149,15 @@ pub async fn list_stations(cfg: &Config, filter_equivalent_stations: bool, data_
 
     let header = build_auth_header(&serialized_body, &cfg.geofox_user, &cfg.geofox_secret);
 
-    let response = match client.post(url).headers(header).body(serialized_body).send().await {
-        Ok(resp ) => resp,
-        Err(_) => panic!("Failed to get stations list")
+    let response = match client
+        .post(url)
+        .headers(header)
+        .body(serialized_body)
+        .send()
+        .await
+    {
+        Ok(resp) => resp,
+        Err(_) => panic!("Failed to get stations list"),
     };
 
     let response_code = response.status();
@@ -191,5 +231,15 @@ mod tests {
         let stations = list_stations(&config, false, "").await;
 
         assert_eq!(stations.is_empty(), false); // the list should not be empty!
+    }
+
+    #[tokio::test]
+    async fn test_get_name_function() {
+        let config = build_config();
+
+        let results = match check_name(&config, "Altona", 1, 3000, false, false) {
+            Ok(result) => result,
+            Err(err_msg) => panic!("{}", err_msg)
+        };
     }
 }

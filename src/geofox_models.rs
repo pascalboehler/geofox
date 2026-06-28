@@ -40,6 +40,16 @@ pub struct StationListEntry {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct CNRequest {
+    pub(crate) theName: String,
+    pub(crate) maxListL: u16,
+    pub(crate) maxDistance: u16,
+    pub(crate) coordinateType: String,
+    pub(crate) tariffDetails: bool,
+    pub(crate) allowTypeSwitch: bool,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Coordinate {
     x: u64,
     y: u64,
