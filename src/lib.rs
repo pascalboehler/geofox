@@ -1,4 +1,4 @@
-use crate::geofox_models::{PCRequest, PCResponse};
+use crate::geofox_models::{LSRequest, LSResponse, PCRequest, PCResponse};
 use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
@@ -7,6 +7,7 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
 use sha1::Sha1;
 use std::str::FromStr;
+use crate::model::Station;
 
 mod geofox_models;
 pub mod model;
@@ -96,6 +97,41 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
     response_message.isHVV
 }
 
+// /gti/public/listStations
+pub async fn list_stations(cfg: &Config, filter_equivalent_stations: bool, data_release_date: &str) -> Vec<Station> {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
+    let client = reqwest::Client::new();
+
+    let body = LSRequest {
+        dataReleaseID: data_release_date.to_string(),
+        modificationTypes: vec!["MAIN".to_string()],
+        coordinateType: "EPSG_4326".to_string(),
+        filterEquivalent: filter_equivalent_stations
+    };
+
+    let serialized_body = serde_json::to_string(&body).unwrap();
+
+    println!("{}", serialized_body);
+
+    let header = build_auth_header(&serialized_body, &cfg.geofox_user, &cfg.geofox_secret);
+
+    let response = match client.post(url).headers(header).body(serialized_body).send().await {
+        Ok(resp ) => resp,
+        Err(_) => panic!("Failed to get stations list")
+    };
+
+    let response_code = response.status();
+    println!("{}", response_code);
+
+    let json_string = response.text().await.expect("Error while unwrapping");
+
+    println!("{}", json_string);
+
+    let data: LSResponse = serde_json::from_str(&json_string).unwrap();
+
+    vec![]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -146,5 +182,14 @@ mod tests {
 
         assert!(shoud_exist);
         assert_eq!(should_not_exist, false);
+    }
+
+    #[tokio::test]
+    async fn test_list_stations_function() {
+        let config = build_config();
+
+        let stations = list_stations(&config, false, "").await;
+
+        assert_eq!(stations.is_empty(), false); // the list should not be empty!
     }
 }
