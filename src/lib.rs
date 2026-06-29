@@ -19,10 +19,13 @@ pub struct Config {
 }
 
 // Function should receive a json string slice and a password slide, hash it according to geofox and return a base64 encoded string.
-fn hash_body_and_password(body: &str, password: &str) -> String {
+fn hash_body_and_password(body: &str, password: &str) -> Result<String, String> {
     type HmacSha1 = Hmac<Sha1>;
 
-    let mut mac = HmacSha1::new_from_slice(password.as_ref()).expect("Key import must work");
+    let mut mac = match HmacSha1::new_from_slice(password.as_ref()) {
+        Ok(mac) => mac,
+        Err(e) => return Err("Error while unwrapping Sha1".to_string())
+    };
 
     mac.update(body.as_ref());
 
@@ -30,14 +33,14 @@ fn hash_body_and_password(body: &str, password: &str) -> String {
 
     let encoded_string = general_purpose::STANDARD.encode(result);
 
-    encoded_string
+   Ok(encoded_string)
 }
 
 // Helper function that constructs the Geofox Request Header
-fn build_auth_header(body: &str, user: &str, pw: &str) -> HeaderMap {
+fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap, String> {
     let mut header = HeaderMap::new();
 
-    let hash_pw = hash_body_and_password(body, pw);
+    let hash_pw = hash_body_and_password(body, pw)?;
 
     header.append(
         HeaderName::from_str("geofox-auth-user").unwrap(),
@@ -56,26 +59,26 @@ fn build_auth_header(body: &str, user: &str, pw: &str) -> HeaderMap {
         HeaderValue::from_str("application/json;charset=UTF-8").unwrap(),
     );
 
-    header
+    Ok(header)
 }
 
 // Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
-pub async fn init(cfg: &Config) -> Response {
+pub async fn init(cfg: &Config) -> Result<Response, String> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/init");
     let client = reqwest::Client::new();
 
-    let header = build_auth_header("{}", &*cfg.geofox_user, &*cfg.geofox_secret);
+    let header = build_auth_header("{}", &*cfg.geofox_user, &*cfg.geofox_secret)?;
 
     let res = match client.post(url).headers(header).body("{}").send().await {
         Ok(resp) => resp,
-        Err(_) => panic!("Couldnt contact client!"),
+        Err(_) => return Err("Couldnt contact client!".to_string()),
     };
 
-    res
+    Ok(res)
 }
 
 // Calls the /checkPostalCode endpoint to validate if a given postal code is inside the HVV services area
-pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
+pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool, String> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkPostalCode ");
     let client = reqwest::Client::new();
 
@@ -85,16 +88,16 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> bool {
     };
     let ser = serde_json::to_string(&body).unwrap();
 
-    let header = build_auth_header(&ser, &*cfg.geofox_user, &*cfg.geofox_secret);
+    let header = build_auth_header(&ser, &*cfg.geofox_user, &*cfg.geofox_secret)?;
 
     let res = match client.post(url).headers(header).body(ser).send().await {
         Ok(res) => res,
-        Err(_) => panic!("CheckPostalCode Request failed"),
+        Err(_) => return Err("CheckPostalCode Request failed".to_string()),
     };
 
-    let response_message: PCResponse = serde_json::from_str(&res.text().await.unwrap()).unwrap();
+    let response_message: PCResponse = serde_json::from_str(&res.text().await.unwrap()).unwrap(); // this pretty sure cannot not panic
 
-    response_message.isHVV
+    Ok(response_message.isHVV)
 }
 
 // Check if a name exists and return the station: /gti/public/checkName
@@ -132,7 +135,7 @@ pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
     data_release_date: &str,
-) -> Vec<Station> {
+) -> Result<Vec<Station>, String> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -143,11 +146,11 @@ pub async fn list_stations(
         filterEquivalent: filter_equivalent_stations,
     };
 
-    let serialized_body = serde_json::to_string(&body).unwrap();
+    let serialized_body = serde_json::to_string(&body).unwrap(); // known good
 
     println!("{}", serialized_body);
 
-    let header = build_auth_header(&serialized_body, &cfg.geofox_user, &cfg.geofox_secret);
+    let header = build_auth_header(&serialized_body, &cfg.geofox_user, &cfg.geofox_secret)?;
 
     let response = match client
         .post(url)
@@ -163,13 +166,19 @@ pub async fn list_stations(
     let response_code = response.status();
     println!("{}", response_code);
 
-    let json_string = response.text().await.expect("Error while unwrapping");
+    let json_string = match response.text().await {
+        Ok(json) => json,
+        Err(_) => return Err("Failed to unwrap response text".to_string())
+    };
 
     println!("{}", json_string);
 
-    let data: LSResponse = serde_json::from_str(&json_string).unwrap();
+    let data: LSResponse = match serde_json::from_str(&json_string) {
+        Ok(data) => data,
+        Err(_) => return Err("Unable to unwrap response".to_string())
+    };
 
-    vec![]
+    Ok(vec![])
 }
 
 #[cfg(test)]
@@ -184,7 +193,7 @@ mod tests {
 
         let password = "password";
 
-        let hashed_string = hash_body_and_password(body_json_str, password);
+        let hashed_string = hash_body_and_password(body_json_str, password).unwrap();
 
         assert_eq!(hashed_string, "NluTzK4mYLMjBg6YRe6ROJM9ZuI=");
     }
@@ -207,7 +216,7 @@ mod tests {
     async fn test_geofox_http_header_login() {
         let config = build_config();
 
-        let response = init(&config).await;
+        let response = init(&config).await.unwrap();
         println!("{}", response.status());
         assert!(response.status().is_success());
         println!("{}", response.text().await.unwrap());
@@ -217,10 +226,10 @@ mod tests {
     async fn test_check_postal_function() {
         let config = build_config();
 
-        let should_not_exist = check_postal_code(&config, 12345).await;
-        let shoud_exist = check_postal_code(&config, 20097).await;
+        let should_not_exist = check_postal_code(&config, 12345).await.unwrap();
+        let shold_exist = check_postal_code(&config, 20097).await.unwrap();
 
-        assert!(shoud_exist);
+        assert!(shold_exist);
         assert_eq!(should_not_exist, false);
     }
 
@@ -228,7 +237,7 @@ mod tests {
     async fn test_list_stations_function() {
         let config = build_config();
 
-        let stations = list_stations(&config, false, "").await;
+        let stations = list_stations(&config, false, "").await.unwrap();
 
         assert_eq!(stations.is_empty(), false); // the list should not be empty!
     }
@@ -237,9 +246,6 @@ mod tests {
     async fn test_get_name_function() {
         let config = build_config();
 
-        let results = match check_name(&config, "Altona", 1, 3000, false, false) {
-            Ok(result) => result,
-            Err(err_msg) => panic!("{}", err_msg)
-        };
+        let results = check_name(&config, "Altona", 1, 3000, false, false).unwrap();
     }
 }
