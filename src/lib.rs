@@ -171,7 +171,6 @@ pub async fn list_stations(
         Err(_) => return Err("Failed to unwrap response text".to_string())
     };
 
-    println!("{}", json_string);
 
     let data: LSResponse = match serde_json::from_str(&json_string) {
         Ok(data) => data,
