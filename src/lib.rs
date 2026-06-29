@@ -4,10 +4,10 @@ use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::{Error, Response};
-use serde::Serialize;
+use reqwest::Response;
 use sha1::Sha1;
 use std::str::FromStr;
+use anyhow::Result;
 
 mod geofox_models;
 pub mod model;
@@ -19,13 +19,10 @@ pub struct Config {
 }
 
 // Function should receive a json string slice and a password slide, hash it according to geofox and return a base64 encoded string.
-fn hash_body_and_password(body: &str, password: &str) -> Result<String, String> {
+fn hash_body_and_password(body: &str, password: &str) -> Result<String> {
     type HmacSha1 = Hmac<Sha1>;
 
-    let mut mac = match HmacSha1::new_from_slice(password.as_ref()) {
-        Ok(mac) => mac,
-        Err(e) => return Err("Error while unwrapping Sha1".to_string())
-    };
+    let mut mac = HmacSha1::new_from_slice(password.as_ref())?;
 
     mac.update(body.as_ref());
 
@@ -37,48 +34,45 @@ fn hash_body_and_password(body: &str, password: &str) -> Result<String, String> 
 }
 
 // Helper function that constructs the Geofox Request Header
-fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap, String> {
+fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap> {
     let mut header = HeaderMap::new();
 
     let hash_pw = hash_body_and_password(body, pw)?;
 
     header.append(
-        HeaderName::from_str("geofox-auth-user").unwrap(),
-        HeaderValue::from_str(user).unwrap(),
+        HeaderName::from_str("geofox-auth-user")?,
+        HeaderValue::from_str(user)?,
     );
     header.append(
-        HeaderName::from_str("geofox-auth-signature").unwrap(),
-        HeaderValue::from_str(&hash_pw).unwrap(),
+        HeaderName::from_str("geofox-auth-signature")?,
+        HeaderValue::from_str(&hash_pw)?,
     );
     header.append(
-        HeaderName::from_str("geofox-auth-type").unwrap(),
-        HeaderValue::from_str("HmacSHA1").unwrap(),
+        HeaderName::from_str("geofox-auth-type")?,
+        HeaderValue::from_str("HmacSHA1")?,
     );
     header.append(
-        HeaderName::from_str("Content-Type").unwrap(),
-        HeaderValue::from_str("application/json;charset=UTF-8").unwrap(),
+        HeaderName::from_str("Content-Type")?,
+        HeaderValue::from_str("application/json;charset=UTF-8")?,
     );
 
     Ok(header)
 }
 
 // Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
-pub async fn init(cfg: &Config) -> Result<Response, String> {
+pub async fn init(cfg: &Config) -> Result<Response> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/init");
     let client = reqwest::Client::new();
 
     let header = build_auth_header("{}", &*cfg.geofox_user, &*cfg.geofox_secret)?;
 
-    let res = match client.post(url).headers(header).body("{}").send().await {
-        Ok(resp) => resp,
-        Err(_) => return Err("Couldnt contact client!".to_string()),
-    };
+    let res = client.post(url).headers(header).body("{}").send().await?;
 
     Ok(res)
 }
 
 // Calls the /checkPostalCode endpoint to validate if a given postal code is inside the HVV services area
-pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool, String> {
+pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkPostalCode ");
     let client = reqwest::Client::new();
 
@@ -90,12 +84,9 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool, S
 
     let header = build_auth_header(&ser, &*cfg.geofox_user, &*cfg.geofox_secret)?;
 
-    let res = match client.post(url).headers(header).body(ser).send().await {
-        Ok(res) => res,
-        Err(_) => return Err("CheckPostalCode Request failed".to_string()),
-    };
+    let res = client.post(url).headers(header).body(ser).send().await?;
 
-    let response_message: PCResponse = serde_json::from_str(&res.text().await.unwrap()).unwrap(); // this pretty sure cannot not panic
+    let response_message: PCResponse = serde_json::from_str(&res.text().await?)?; // this pretty sure cannot not panic
 
     Ok(response_message.isHVV)
 }
@@ -135,7 +126,7 @@ pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
     data_release_date: &str,
-) -> Result<Vec<Station>, String> {
+) -> Result<Vec<Station>> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -166,16 +157,10 @@ pub async fn list_stations(
     let response_code = response.status();
     println!("{}", response_code);
 
-    let json_string = match response.text().await {
-        Ok(json) => json,
-        Err(_) => return Err("Failed to unwrap response text".to_string())
-    };
+    let json_string = response.text().await?;
 
 
-    let data: LSResponse = match serde_json::from_str(&json_string) {
-        Ok(data) => data,
-        Err(_) => return Err("Unable to unwrap response".to_string())
-    };
+    let data: LSResponse = serde_json::from_str(&json_string)?;
 
     Ok(vec![])
 }
