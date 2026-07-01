@@ -122,11 +122,13 @@ pub fn check_name(
 }
 
 // /gti/public/listStations
+// Can be used for prefetching all stations
+// Returns a list of HVV Type "StationListEntry" => TODO: Convert to better types with all information
 pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
     data_release_date: &str,
-) -> Result<Vec<Station>> {
+) -> Result<Vec<geofox_models::StationListEntry>> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -161,7 +163,7 @@ pub async fn list_stations(
 
     let data: LSResponse = serde_json::from_str(&json_string)?;
 
-    Ok(vec![])
+    Ok(data.stations)
 }
 
 #[cfg(test)]
@@ -210,9 +212,9 @@ mod tests {
         let config = build_config();
 
         let should_not_exist = check_postal_code(&config, 12345).await.unwrap();
-        let shold_exist = check_postal_code(&config, 20097).await.unwrap();
+        let should_exist = check_postal_code(&config, 20097).await.unwrap();
 
-        assert!(shold_exist);
+        assert!(should_exist);
         assert_eq!(should_not_exist, false);
     }
 
