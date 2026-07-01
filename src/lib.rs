@@ -121,9 +121,18 @@ pub fn check_name(
     Err("Function not implemented".to_string())
 }
 
-// /gti/public/listStations
-// Can be used for prefetching all stations
-// Returns a list of HVV Type "StationListEntry" => TODO: Convert to better types with all information
+// TODO: Convert to better types with all information
+/// Function that calls the /gti/public/listStations endpoints to prefetch all stations.
+///
+/// This can be used for caching or prefetching all currently available stations
+///
+/// # Arguments
+/// * `cfg` - `&Config` object with the API credentials configuration.
+/// * `filter_equivalent_statons` - `bool` that marks if it should filter stations that are equivalent (e.g. Rödingsmarkt and Rödingsmarkt U)
+/// * `data_release_date` - `&str` that can eather be empty to fetch all data or can include a timestamp from the last fetch (to only fetch new data)
+///
+/// # Returns
+/// * A Vector of type `Result<Vec<geofox_models::StationListEntry>>` with all fetched stations without any cleanups
 pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
