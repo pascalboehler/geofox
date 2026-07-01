@@ -58,7 +58,6 @@ fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap> {
     Ok(header)
 }
 
-// Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
 /// Function to call the init endpoint of the geofox api
 ///
 /// This function can be used to check if your API credentials are valid and gather some basic information about the API
