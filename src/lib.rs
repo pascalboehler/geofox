@@ -1,13 +1,13 @@
 use crate::geofox_models::{CNRequest, LSRequest, LSResponse, PCRequest, PCResponse};
 use crate::model::Station;
+use anyhow::Result;
 use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Response;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use sha1::Sha1;
 use std::str::FromStr;
-use anyhow::Result;
 
 mod geofox_models;
 pub mod model;
@@ -30,7 +30,7 @@ fn hash_body_and_password(body: &str, password: &str) -> Result<String> {
 
     let encoded_string = general_purpose::STANDARD.encode(result);
 
-   Ok(encoded_string)
+    Ok(encoded_string)
 }
 
 // Helper function that constructs the Geofox Request Header
@@ -114,7 +114,7 @@ pub fn check_name(
 
     let body_str = match serde_json::to_string(&body) {
         Ok(ser) => ser,
-        Err(_) => return Err("Could not serialize body".to_string())
+        Err(_) => return Err("Could not serialize body".to_string()),
     };
 
     //let header = build_auth_header();
@@ -158,7 +158,6 @@ pub async fn list_stations(
     println!("{}", response_code);
 
     let json_string = response.text().await?;
-
 
     let data: LSResponse = serde_json::from_str(&json_string)?;
 

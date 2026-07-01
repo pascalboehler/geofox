@@ -22,6 +22,7 @@ pub struct LSRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct LSResponse {
+    pub(crate) returnCode: String,
     pub(crate) dataReleaseID: String,
     pub(crate) stations: Vec<StationListEntry>,
 }
@@ -29,14 +30,14 @@ pub struct LSResponse {
 #[derive(Serialize, Deserialize)]
 pub struct StationListEntry {
     pub(crate) id: String,
-    pub(crate) name: String,
-    pub(crate) city: String,
-    pub(crate) combinedName: String,
-    pub(crate) shortcuts: Vec<String>,
-    pub(crate) aliasses: Vec<String>,
-    pub(crate) vehicleTypes: Vec<String>,
-    pub(crate) coordinate: Coordinate,
-    pub(crate) exists: bool,
+    pub(crate) name: Option<String>,
+    pub(crate) city: Option<String>,
+    pub(crate) combinedName: Option<String>,
+    pub(crate) shortcuts: Option<Vec<String>>,
+    pub(crate) aliasses: Option<Vec<String>>,
+    pub(crate) vehicleTypes: Option<Vec<String>>,
+    pub(crate) coordinate: Option<Coordinate>,
+    pub(crate) exists: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
