@@ -93,10 +93,10 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
     let client = reqwest::Client::new();
 
     let body = PCRequest {
-        postalCode: postal_code,
+        postal_code,
         version: 63,
     };
-    let ser = serde_json::to_string(&body).unwrap();
+    let ser = serde_json::to_string(&body)?;
 
     let header = build_auth_header(&ser, &*cfg.geofox_user, &*cfg.geofox_secret)?;
 
@@ -104,7 +104,7 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
 
     let response_message: PCResponse = serde_json::from_str(&res.text().await?)?; // this pretty sure cannot not panic
 
-    Ok(response_message.isHVV)
+    Ok(response_message.is_hvv)
 }
 
 // Check if a name exists and return the station: /gti/public/checkName
@@ -120,12 +120,12 @@ pub fn check_name(
     let client = reqwest::Client::new();
 
     let body = CNRequest {
-        theName: search_name.to_string(),
-        maxListL: max_search,
-        maxDistance: max_dist,
-        coordinateType: "EPSG_4326".to_string(),
-        tariffDetails: include_tariff_details,
-        allowTypeSwitch: allow_type_switch,
+        the_name: search_name.to_string(),
+        max_list_l: max_search,
+        max_distance: max_dist,
+        coordinate_type: "EPSG_4326".to_string(),
+        tariff_details: include_tariff_details,
+        allow_type_switch,
     };
 
     let body_str = match serde_json::to_string(&body) {
@@ -158,13 +158,13 @@ pub async fn list_stations(
     let client = reqwest::Client::new();
 
     let body = LSRequest {
-        dataReleaseID: data_release_date.to_string(),
-        modificationTypes: vec!["MAIN".to_string()],
-        coordinateType: "EPSG_4326".to_string(),
-        filterEquivalent: filter_equivalent_stations,
+        data_release_id: data_release_date.to_string(),
+        modification_types: vec!["MAIN".to_string()],
+        coordinate_type: "EPSG_4326".to_string(),
+        filter_equivalent: filter_equivalent_stations,
     };
 
-    let serialized_body = serde_json::to_string(&body).unwrap(); // known good
+    let serialized_body = serde_json::to_string(&body)?; // known good
 
     println!("{}", serialized_body);
 
