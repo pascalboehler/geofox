@@ -18,7 +18,7 @@ The API credentials must be ordered via the official hvv channels.
 - [ ] Methode departureList
 - [ ] Methode getTariff
 - [ ] Methode departureCourse
-- [ ] Methode listStations
+- [x] Methode listStations
 - [ ] Methode listLines
 - [ ] Methode getAnnouncements
 - [ ] Methode getIndividualRoute
