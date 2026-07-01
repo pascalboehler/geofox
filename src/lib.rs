@@ -59,6 +59,15 @@ fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap> {
 }
 
 // Calls the /init endpoint -> can be used to verify credentials and query information about the Geofox service
+/// Function to call the init endpoint of the geofox api
+///
+/// This function can be used to check if your API credentials are valid and gather some basic information about the API
+///
+/// # Arguments
+/// * `cfg` - `&Config` object with the API credentials configuration.
+///
+/// # Returns
+/// * A `Result<reqwest::Response>`. Will return an `Err` if anything went wrong.
 pub async fn init(cfg: &Config) -> Result<Response> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/init");
     let client = reqwest::Client::new();
