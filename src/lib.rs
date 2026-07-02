@@ -17,7 +17,18 @@ pub struct Config {
     geofox_url: String,
 }
 
-// Function should receive a json string slice and a password slide, hash it according to geofox and return a base64 encoded string.
+/// Private helper function that calculates the required authentication hash
+///
+/// The GTI Geofox API requires the user to calculate a base64 encoded Sha1 HMAC Challenge using the password and encoded json body for authentication.
+/// This function calculates this header according to the APIs requirements to simplify the authentication process.
+/// This will be used by the crate during the construction of the http header.
+///
+/// # Arguments
+/// * `body` - `&str` with the serialized json request body.
+/// * `password` - `&str` with the assigned api password.
+///
+/// # Returns
+/// * `Result<String>` - The hashed and base64 encoded result string. Will return an `Err` if anything goes wrong.
 fn hash_body_and_password(body: &str, password: &str) -> Result<String> {
     type HmacSha1 = Hmac<Sha1>;
 
@@ -32,7 +43,17 @@ fn hash_body_and_password(body: &str, password: &str) -> Result<String> {
     Ok(encoded_string)
 }
 
-// Helper function that constructs the Geofox Request Header
+/// Helper function to construct the correct http header
+///
+/// The Geofox API requires the user to construct a special http header for the authentication to work based on your credentials and the actual request body.
+///
+/// # Arguments
+/// * `body` - `&str` that includes the serialized json string
+/// * `user` - `&str` with the assigned username
+/// * `pw` - `&str` the assigned geofox api password, used to authenticate against the api
+///
+/// # Returns
+/// - `Result<HeaderMap>` - Returns a reqwest::HeaderMap that can be used for the http request. Will return an `Err` if anything goes wrong
 fn build_auth_header(body: &str, user: &str, pw: &str) -> Result<HeaderMap> {
     let mut header = HeaderMap::new();
 
