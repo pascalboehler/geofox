@@ -158,7 +158,6 @@ pub fn check_name(
     Err("Function not implemented".to_string())
 }
 
-// TODO: Convert to better types with all information
 /// Function that calls the /gti/public/listStations endpoints to prefetch all stations.
 ///
 /// This can be used for caching or prefetching all currently available stations
