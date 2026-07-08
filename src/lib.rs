@@ -1,6 +1,6 @@
-use crate::geofox_models::{CNRequest, LSRequest, LSResponse, PCRequest, PCResponse};
+use crate::geofox_models::{CNRequest, CNResponse, LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName};
 use anyhow::Result;
-use base64::Engine;
+use base64::{encode, Engine};
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
@@ -129,19 +129,19 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
 }
 
 // Check if a name exists and return the station: /gti/public/checkName
-pub fn check_name(
+pub async fn check_name(
     cfg: &Config,
-    search_name: &str,
+    search_name: SDName,
     max_search: u16,
     max_dist: u16,
     include_tariff_details: bool,
     allow_type_switch: bool,
-) -> Result<String, String> {
+) -> Result<Vec<RegionalSDName>> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/checkName");
     let client = reqwest::Client::new();
 
     let body = CNRequest {
-        the_name: search_name.to_string(),
+        the_name: search_name,
         max_list_l: max_search,
         max_distance: max_dist,
         coordinate_type: "EPSG_4326".to_string(),
@@ -149,13 +149,15 @@ pub fn check_name(
         allow_type_switch,
     };
 
-    let body_str = match serde_json::to_string(&body) {
-        Ok(ser) => ser,
-        Err(_) => return Err("Could not serialize body".to_string()),
-    };
+    let body_str = serde_json::to_string(&body)?;
+    let header = build_auth_header(&body_str, &cfg.geofox_user, &cfg.geofox_secret)?;
 
-    //let header = build_auth_header();
-    Err("Function not implemented".to_string())
+    let resp = client.post(url).headers(header).body(body_str).send().await?;
+
+    let encoded_json = resp.text().await?;
+    let data_returned: CNResponse = serde_json::from_str(&encoded_json)?;
+
+    Ok(data_returned.results.unwrap_or_else(|| vec![]))
 }
 
 /// Function that calls the /gti/public/listStations endpoints to prefetch all stations.
@@ -276,6 +278,20 @@ mod tests {
     async fn test_get_name_function() {
         let config = build_config();
 
-        let results = check_name(&config, "Altona", 1, 3000, false, false).unwrap();
+        let search_term = SDName {
+            name: Some("Altona".to_string()),
+            city: None,
+            combined_name: None,
+            sd_type: Some("UNKNOWN".to_string()),
+            coordinate: None,
+            layer: None,
+            tariff_details: None,
+            has_station_information: None,
+            provider: None,
+            address: None,
+        };
+
+        let results = check_name(&config, search_term, 1, 3000, false, false).await.unwrap();
+        assert_eq!(results.is_empty(), false);
     }
 }
