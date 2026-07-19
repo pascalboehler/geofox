@@ -1,6 +1,6 @@
 use crate::geofox_models::{CNRequest, CNResponse, LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName};
 use anyhow::Result;
-use base64::{encode, Engine};
+use base64::Engine;
 use base64::engine::general_purpose;
 use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
