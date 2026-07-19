@@ -61,7 +61,7 @@ pub struct LineListEntry {
     pub(crate) sublines: Option<Vec<SublineListEntry>>,
     pub(crate) exists: Option<bool>,
     #[serde(rename = "type")]
-    pub(crate) service_type: Option<ServiceType>
+    pub(crate) service_type: Option<ServiceType>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -76,7 +76,7 @@ pub struct ServiceType {
 pub struct SublineListEntry {
     pub(crate) subline_number: String,
     pub(crate) vehicle_type: String,
-    pub(crate) station_sequence: Vec<StationLight>
+    pub(crate) station_sequence: Vec<StationLight>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -146,7 +146,7 @@ pub struct TariffDetail {
     pub(crate) rings: Option<Vec<String>>,
     pub(crate) fare_stage: Option<bool>,
     pub(crate) fare_stage_number: Option<i16>,
-    pub(crate) tariff_names: Option<Vec<String>>
+    pub(crate) tariff_names: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -164,12 +164,12 @@ pub struct RegionalSDName {
     pub(crate) provider: Option<String>,
     pub(crate) address: Option<String>,
     pub(crate) distance: Option<i32>,
-    pub(crate) time: Option<String>
+    pub(crate) time: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CNResponse {
     pub(crate) return_code: String,
-    pub(crate) results: Option<Vec<RegionalSDName>>
+    pub(crate) results: Option<Vec<RegionalSDName>>,
 }
