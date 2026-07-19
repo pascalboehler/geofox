@@ -36,6 +36,58 @@ pub struct LSResponse {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct LLRequest {
+    #[serde(rename = "dataReleaseID")]
+    pub(crate) data_release_id: String,
+    pub(crate) modification_types: Vec<String>,
+    pub(crate) with_sublines: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LLResponse {
+    #[serde(rename = "dataReleaseID")]
+    pub(crate) data_release_id: String,
+    pub(crate) lines: Option<Vec<LineListEntry>>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LineListEntry {
+    pub(crate) id: String,
+    pub(crate) name: Option<String>,
+    pub(crate) carrier_name_short: Option<String>,
+    pub(crate) carrier_long_name: Option<String>,
+    pub(crate) sublines: Option<Vec<SublineListEntry>>,
+    pub(crate) exists: Option<bool>,
+    #[serde(rename = "type")]
+    pub(crate) service_type: Option<ServiceType>
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceType {
+    pub(crate) simpleType: String,
+    pub(crate) shortInfo: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SublineListEntry {
+    pub(crate) subline_number: String,
+    pub(crate) vehicle_type: String,
+    pub(crate) station_sequence: Vec<StationLight>
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StationLight {
+    pub(crate) id: String,
+    pub(crate) name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StationListEntry {
     pub(crate) id: String,
     pub(crate) name: Option<String>,
