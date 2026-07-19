@@ -30,7 +30,7 @@ pub struct LSResponse {
     pub(crate) return_code: String,
     #[serde(rename = "dataReleaseID")]
     pub(crate) data_release_id: String,
-    pub(crate) stations: Vec<StationListEntry>,
+    pub(crate) stations: Option<Vec<StationListEntry>>,
 }
 
 #[derive(Serialize, Deserialize)]
