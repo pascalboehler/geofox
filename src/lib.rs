@@ -175,7 +175,7 @@ pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
     data_release_date: &str,
-) -> Result<Vec<geofox_models::StationListEntry>> {
+) -> Result<geofox_models::LSResponse> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -210,7 +210,7 @@ pub async fn list_stations(
 
     let data: LSResponse = serde_json::from_str(&json_string)?;
 
-    Ok(data.stations)
+    Ok(data)
 }
 
 #[cfg(test)]
@@ -269,9 +269,13 @@ mod tests {
     async fn test_list_stations_function() {
         let config = build_config();
 
-        let stations = list_stations(&config, false, "").await.unwrap();
+        let ls_resp = list_stations(&config, false, "").await.unwrap();
 
-        assert_eq!(stations.is_empty(), false); // the list should not be empty!
+        assert_eq!(ls_resp.stations.unwrap().is_empty(), false); // the list should not be empty!
+
+        let ls_sec_resp = list_stations(&config, false, &ls_resp.data_release_id).await.unwrap();
+
+        assert!(ls_sec_resp.stations.is_none()); // calling the endpoint a second later should return nothing -> No new data. Due to HVV API stuff the array is not empty , its none
     }
 
     #[tokio::test]

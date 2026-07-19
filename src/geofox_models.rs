@@ -18,6 +18,7 @@ pub struct PCResponse {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LSRequest {
+    #[serde(rename = "dataReleaseID")]
     pub(crate) data_release_id: String,
     pub(crate) modification_types: Vec<String>,
     pub(crate) coordinate_type: String,
