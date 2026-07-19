@@ -67,8 +67,8 @@ pub struct LineListEntry {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceType {
-    pub(crate) simpleType: String,
-    pub(crate) shortInfo: String,
+    pub(crate) simple_type: String,
+    pub(crate) short_info: String,
 }
 
 #[derive(Serialize, Deserialize)]
