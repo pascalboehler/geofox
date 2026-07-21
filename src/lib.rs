@@ -1,4 +1,6 @@
-use crate::geofox_models::{CNRequest, CNResponse, LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName};
+use crate::geofox_models::{
+    CNRequest, CNResponse, LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName,
+};
 use anyhow::Result;
 use base64::Engine;
 use base64::engine::general_purpose;
@@ -152,7 +154,12 @@ pub async fn check_name(
     let body_str = serde_json::to_string(&body)?;
     let header = build_auth_header(&body_str, &cfg.geofox_user, &cfg.geofox_secret)?;
 
-    let resp = client.post(url).headers(header).body(body_str).send().await?;
+    let resp = client
+        .post(url)
+        .headers(header)
+        .body(body_str)
+        .send()
+        .await?;
 
     let encoded_json = resp.text().await?;
     let data_returned: CNResponse = serde_json::from_str(&encoded_json)?;
@@ -211,6 +218,16 @@ pub async fn list_stations(
     let data: LSResponse = serde_json::from_str(&json_string)?;
 
     Ok(data)
+}
+
+// /gti/public/listLines
+pub async fn list_lines(
+    cfg: &Config,
+    include_sublines: bool,
+    data_release_date: &str,
+) -> Result<Vec<geofox_models::LLResponse>> {
+    panic!("Its not implemented yet");
+    Ok(vec![])
 }
 
 #[cfg(test)]
@@ -273,9 +290,18 @@ mod tests {
 
         assert_eq!(ls_resp.stations.unwrap().is_empty(), false); // the list should not be empty!
 
-        let ls_sec_resp = list_stations(&config, false, &ls_resp.data_release_id).await.unwrap();
+        let ls_sec_resp = list_stations(&config, false, &ls_resp.data_release_id)
+            .await
+            .unwrap();
 
         assert!(ls_sec_resp.stations.is_none()); // calling the endpoint a second later should return nothing -> No new data. Due to HVV API stuff the array is not empty , its none
+    }
+
+    #[tokio::test]
+    async fn test_list_lines_function() {
+        let config = build_config();
+
+        panic!("This currently is not implements");
     }
 
     #[tokio::test]
@@ -295,7 +321,9 @@ mod tests {
             address: None,
         };
 
-        let results = check_name(&config, search_term, 1, 3000, false, false).await.unwrap();
+        let results = check_name(&config, search_term, 1, 3000, false, false)
+            .await
+            .unwrap();
         assert_eq!(results.is_empty(), false);
     }
 }
