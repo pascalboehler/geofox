@@ -193,7 +193,7 @@ pub async fn check_name(
 /// * `data_release_date` - `&str` that can eather be empty to fetch all data or can include a timestamp from the last fetch (to only fetch new data)
 ///
 /// # Returns
-/// * A Vector of type `Result<Vec<geofox_models::StationListEntry>>` with all fetched stations without any cleanups
+/// * A `Result<geofox_models::LSResponse>` that includes all fetched stations and ids. Will return an error if something goes wrong.
 pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
