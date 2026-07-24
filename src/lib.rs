@@ -353,6 +353,10 @@ mod tests {
 
         assert!(all_lines.lines.is_some());
         assert_eq!(all_lines.lines.unwrap().is_empty(), false);
+
+        let updated_lines = list_lines(&config, false, &all_lines.data_release_id).await.unwrap();
+
+        assert!(updated_lines.lines.is_none());
     }
 
     #[tokio::test]
