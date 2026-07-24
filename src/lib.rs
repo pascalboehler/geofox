@@ -236,7 +236,17 @@ pub async fn list_stations(
     Ok(data)
 }
 
-// /gti/public/listLines
+/// Function that list all lines available on the API using the /listLines endpoint
+///
+/// This function can be used for caching or prefetching all available lines in applications.
+///
+/// # Arguments
+/// * `cfg` - `&Config` object with the API credentials
+/// * `include_sublines` - `bool` flag that controls if the result should also include all sublines available.
+/// * `data_release_date` - `&str` that can eather be empty ("") to fetch all data or can include a timestamp from the last fetch (to only fetch the updated data)
+///
+/// # Returns
+/// * Returns a `Result<geofox_models::LLResponse> with all lines queried. Will return an error if something goes wrong.
 pub async fn list_lines(
     cfg: &Config,
     include_sublines: bool,
