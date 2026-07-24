@@ -242,7 +242,7 @@ pub async fn list_stations(
 ///
 /// # Arguments
 /// * `cfg` - `&Config` object with the API credentials
-/// * `include_sublines` - `bool` flag that controls if the result should also include all sublines available.
+/// * `include_sublines` - `bool` flag that controls if the result should also include all sublines available (e.g. variations of the U1).
 /// * `data_release_date` - `&str` that can eather be empty ("") to fetch all data or can include a timestamp from the last fetch (to only fetch the updated data)
 ///
 /// # Returns
