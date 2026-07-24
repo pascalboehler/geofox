@@ -1,5 +1,6 @@
 use crate::geofox_models::{
-    CNRequest, CNResponse, LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName,
+    CNRequest, CNResponse, LLRequest, LLResponse, LSRequest, LSResponse, PCRequest, PCResponse,
+    RegionalSDName, SDName,
 };
 use anyhow::Result;
 use base64::Engine;
@@ -8,6 +9,7 @@ use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use sha1::Sha1;
+use std::ptr::hash;
 use std::str::FromStr;
 
 mod geofox_models;
@@ -225,9 +227,32 @@ pub async fn list_lines(
     cfg: &Config,
     include_sublines: bool,
     data_release_date: &str,
-) -> Result<Vec<geofox_models::LLResponse>> {
-    panic!("Its not implemented yet");
-    Ok(vec![])
+) -> Result<geofox_models::LLResponse> {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/listLines");
+    let client = reqwest::Client::new();
+
+    let req_body = LLRequest {
+        data_release_id: data_release_date.to_string(),
+        modification_types: vec!["MAIN".to_string()],
+        with_sublines: include_sublines,
+    };
+
+    let ser_body = serde_json::to_string(&req_body)?;
+
+    let header = build_auth_header(&ser_body, &cfg.geofox_user, &cfg.geofox_secret)?;
+
+    let result_from_gti = client
+        .post(&url)
+        .headers(header)
+        .body(ser_body)
+        .send()
+        .await?;
+
+    let json_string = result_from_gti.text().await?;
+
+    let data: LLResponse = serde_json::from_str(&json_string)?;
+
+    Ok(data)
 }
 
 #[cfg(test)]
@@ -300,8 +325,10 @@ mod tests {
     #[tokio::test]
     async fn test_list_lines_function() {
         let config = build_config();
+        let all_lines = list_lines(&config, false, "").await.unwrap();
 
-        panic!("This currently is not implements");
+        assert!(all_lines.lines.is_some());
+        assert_eq!(all_lines.lines.unwrap().is_empty(), false);
     }
 
     #[tokio::test]
