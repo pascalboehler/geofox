@@ -9,7 +9,6 @@ use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use sha1::Sha1;
-use std::ptr::hash;
 use std::str::FromStr;
 
 mod geofox_models;
@@ -132,7 +131,22 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
     Ok(response_message.is_hvv)
 }
 
-// Check if a name exists and return the station: /gti/public/checkName
+/// Function to check if a name exists and return the corresponding stations
+///
+/// This metod calls the /checkName endoints
+///
+/// # Arguments
+/// * `cfg` - `&Config` object with the API credentials configurations.
+/// * `search_name` - `SDName` object that includes the search queries with all information that is already known.
+/// This can be a partial object, all properties are optional by design.
+/// * `max_search` - `u16` number of objects the query will be returning
+/// * `max_dist` - `u16` maximum distance in km for the search radius (max distance the stations should be apart.
+/// * `include_tariff_details` - `bool` flag, that controls if the returned result should include all tarriff details.
+/// * `allow_type_switch` - `bool` flag. Controls if a type switch (e.g. from line to station) is allowed inside the returned results.
+/// If set to false, it will only return results of a single "type" (e.g. "STATIONS")
+///
+/// # Returns
+/// * A `Result<Vec<RegionalSDName>>` with all the results found. Will be empty if nothing is found and will return an error if the search is invalid.
 pub async fn check_name(
     cfg: &Config,
     search_name: SDName,
