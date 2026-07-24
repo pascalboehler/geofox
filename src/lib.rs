@@ -257,7 +257,7 @@ pub async fn list_lines(
 
     let req_body = LLRequest {
         data_release_id: data_release_date.to_string(),
-        modification_types: vec!["MAIN".to_string()],
+        modification_types: vec!["MAIN".to_string(), "SEQUENCE".to_string()],
         with_sublines: include_sublines,
     };
 
