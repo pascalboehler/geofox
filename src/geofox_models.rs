@@ -111,7 +111,7 @@ pub struct CNRequest {
     pub(crate) allow_type_switch: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Coordinate {
     x: f32,
     y: f32,
@@ -132,7 +132,7 @@ pub struct SDName {
     pub(crate) address: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TariffDetail {
     pub(crate) inner_city: Option<String>,
@@ -165,6 +165,23 @@ pub struct RegionalSDName {
     pub(crate) address: Option<String>,
     pub(crate) distance: Option<i32>,
     pub(crate) time: Option<String>,
+}
+
+impl RegionalSDName {
+    pub fn to_sd_name(&self) -> SDName {
+        SDName {
+            name: self.name.clone(),
+            city: self.city.clone(),
+            combined_name: self.combined_name.clone(),
+            sd_type: self.sd_type.clone(),
+            coordinate: self.coordinate.clone(),
+            layer: self.layer,
+            tariff_details: self.tariff_details.clone(),
+            has_station_information: self.has_station_information,
+            provider: self.provider.clone(),
+            address: self.address.clone(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
