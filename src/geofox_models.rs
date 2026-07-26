@@ -3,112 +3,112 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PCRequest {
-    pub(crate) version: u8,
-    pub(crate) postal_code: u16,
+    pub version: u8,
+    pub postal_code: u16,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PCResponse {
-    pub(crate) return_code: String,
+    pub return_code: String,
     #[serde(rename = "isHVV")]
-    pub(crate) is_hvv: bool,
+    pub is_hvv: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LSRequest {
     #[serde(rename = "dataReleaseID")]
-    pub(crate) data_release_id: String,
-    pub(crate) modification_types: Vec<String>,
-    pub(crate) coordinate_type: String,
-    pub(crate) filter_equivalent: bool,
+    pub data_release_id: String,
+    pub modification_types: Vec<String>,
+    pub coordinate_type: String,
+    pub filter_equivalent: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LSResponse {
-    pub(crate) return_code: String,
+    pub return_code: String,
     #[serde(rename = "dataReleaseID")]
-    pub(crate) data_release_id: String,
-    pub(crate) stations: Option<Vec<StationListEntry>>,
+    pub data_release_id: String,
+    pub stations: Option<Vec<StationListEntry>>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LLRequest {
     #[serde(rename = "dataReleaseID")]
-    pub(crate) data_release_id: String,
-    pub(crate) modification_types: Vec<String>,
-    pub(crate) with_sublines: bool,
+    pub data_release_id: String,
+    pub modification_types: Vec<String>,
+    pub with_sublines: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LLResponse {
     #[serde(rename = "dataReleaseID")]
-    pub(crate) data_release_id: String,
-    pub(crate) lines: Option<Vec<LineListEntry>>,
+    pub data_release_id: String,
+    pub lines: Option<Vec<LineListEntry>>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LineListEntry {
-    pub(crate) id: String,
-    pub(crate) name: Option<String>,
-    pub(crate) carrier_name_short: Option<String>,
-    pub(crate) carrier_long_name: Option<String>,
-    pub(crate) sublines: Option<Vec<SublineListEntry>>,
-    pub(crate) exists: Option<bool>,
+    pub id: String,
+    pub name: Option<String>,
+    pub carrier_name_short: Option<String>,
+    pub carrier_long_name: Option<String>,
+    pub sublines: Option<Vec<SublineListEntry>>,
+    pub exists: Option<bool>,
     #[serde(rename = "type")]
-    pub(crate) service_type: Option<ServiceType>,
+    pub service_type: Option<ServiceType>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceType {
-    pub(crate) simple_type: String,
-    pub(crate) short_info: String,
+    pub simple_type: String,
+    pub short_info: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SublineListEntry {
-    pub(crate) subline_number: String,
-    pub(crate) vehicle_type: String,
-    pub(crate) station_sequence: Vec<StationLight>,
+    pub subline_number: String,
+    pub vehicle_type: String,
+    pub station_sequence: Vec<StationLight>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StationLight {
-    pub(crate) id: String,
-    pub(crate) name: String,
+    pub id: String,
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StationListEntry {
-    pub(crate) id: String,
-    pub(crate) name: Option<String>,
-    pub(crate) city: Option<String>,
-    pub(crate) combined_name: Option<String>,
-    pub(crate) shortcuts: Option<Vec<String>>,
-    pub(crate) aliasses: Option<Vec<String>>,
-    pub(crate) vehicle_types: Option<Vec<String>>,
-    pub(crate) coordinate: Option<Coordinate>,
-    pub(crate) exists: Option<bool>,
+    pub id: String,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub combined_name: Option<String>,
+    pub shortcuts: Option<Vec<String>>,
+    pub aliasses: Option<Vec<String>>,
+    pub vehicle_types: Option<Vec<String>>,
+    pub coordinate: Option<Coordinate>,
+    pub exists: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CNRequest {
-    pub(crate) the_name: SDName,
-    pub(crate) max_list_l: u16,
-    pub(crate) max_distance: u16,
-    pub(crate) coordinate_type: String,
-    pub(crate) tariff_details: bool,
-    pub(crate) allow_type_switch: bool,
+    pub the_name: SDName,
+    pub max_list_l: u16,
+    pub max_distance: u16,
+    pub coordinate_type: String,
+    pub tariff_details: bool,
+    pub allow_type_switch: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -119,52 +119,52 @@ pub struct Coordinate {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SDName {
-    pub(crate) name: Option<String>,
-    pub(crate) city: Option<String>,
-    pub(crate) combined_name: Option<String>,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub combined_name: Option<String>,
     #[serde(rename = "type")]
-    pub(crate) sd_type: Option<String>,
-    pub(crate) coordinate: Option<Coordinate>,
-    pub(crate) layer: Option<i16>,
-    pub(crate) tariff_details: Option<TariffDetail>,
-    pub(crate) has_station_information: Option<bool>,
-    pub(crate) provider: Option<String>,
-    pub(crate) address: Option<String>,
+    pub sd_type: Option<String>,
+    pub coordinate: Option<Coordinate>,
+    pub layer: Option<i16>,
+    pub tariff_details: Option<TariffDetail>,
+    pub has_station_information: Option<bool>,
+    pub provider: Option<String>,
+    pub address: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TariffDetail {
-    pub(crate) inner_city: Option<String>,
-    pub(crate) city_traffic: Option<String>,
-    pub(crate) gratis: Option<bool>,
-    pub(crate) greater_area: Option<bool>,
-    pub(crate) sh_village_id: Option<i16>,
-    pub(crate) sh_tariff_zones: Option<Vec<i16>>,
-    pub(crate) tariff_zones: Option<Vec<i16>>,
-    pub(crate) counties: Option<Vec<String>>,
-    pub(crate) rings: Option<Vec<String>>,
-    pub(crate) fare_stage: Option<bool>,
-    pub(crate) fare_stage_number: Option<i16>,
-    pub(crate) tariff_names: Option<Vec<String>>,
+    pub inner_city: Option<String>,
+    pub city_traffic: Option<String>,
+    pub gratis: Option<bool>,
+    pub greater_area: Option<bool>,
+    pub sh_village_id: Option<i16>,
+    pub sh_tariff_zones: Option<Vec<i16>>,
+    pub tariff_zones: Option<Vec<i16>>,
+    pub counties: Option<Vec<String>>,
+    pub rings: Option<Vec<String>>,
+    pub fare_stage: Option<bool>,
+    pub fare_stage_number: Option<i16>,
+    pub tariff_names: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegionalSDName {
-    pub(crate) name: Option<String>,
-    pub(crate) city: Option<String>,
-    pub(crate) combined_name: Option<String>,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub combined_name: Option<String>,
     #[serde(rename = "type")]
-    pub(crate) sd_type: Option<String>,
-    pub(crate) coordinate: Option<Coordinate>,
-    pub(crate) layer: Option<i16>,
-    pub(crate) tariff_details: Option<TariffDetail>,
-    pub(crate) has_station_information: Option<bool>,
-    pub(crate) provider: Option<String>,
-    pub(crate) address: Option<String>,
-    pub(crate) distance: Option<i32>,
-    pub(crate) time: Option<String>,
+    pub sd_type: Option<String>,
+    pub coordinate: Option<Coordinate>,
+    pub layer: Option<i16>,
+    pub tariff_details: Option<TariffDetail>,
+    pub has_station_information: Option<bool>,
+    pub provider: Option<String>,
+    pub address: Option<String>,
+    pub distance: Option<i32>,
+    pub time: Option<String>,
 }
 
 impl RegionalSDName {
@@ -187,24 +187,24 @@ impl RegionalSDName {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CNResponse {
-    pub(crate) return_code: String,
-    pub(crate) results: Option<Vec<RegionalSDName>>,
+    pub return_code: String,
+    pub results: Option<Vec<RegionalSDName>>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DLRequest {
-    pub(crate) station: Option<SDName>,
-    pub(crate) stations: Option<Vec<SDName>>,
-    pub(crate) time: GTITime,
-    pub(crate) max_list: u16,
-    pub(crate) max_time_offset: u16,
-    pub(crate) all_stations_in_changing_node: bool,
-    pub(crate) return_filters: bool,
-    pub(crate) filter: Option<Vec<FilterEntry>>,
-    pub(crate) service_types: Option<Vec<String>>, // TODO: Use enums!
-    pub(crate) use_realtime: bool,
-    pub(crate) coordinate_type: String,
+    pub station: Option<SDName>,
+    pub stations: Option<Vec<SDName>>,
+    pub time: GTITime,
+    pub max_list: u16,
+    pub max_time_offset: u16,
+    pub all_stations_in_changing_node: bool,
+    pub return_filters: bool,
+    pub filter: Option<Vec<FilterEntry>>,
+    pub service_types: Option<Vec<String>>, // TODO: Use enums!
+    pub use_realtime: bool,
+    pub coordinate_type: String,
 }
 
 #[derive(Serialize, Deserialize)]
