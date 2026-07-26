@@ -13,7 +13,7 @@ The API credentials must be ordered via the official hvv channels.
 ## Functions to implement
 
 - [x] Methode init
-- [ ] Methode checkName
+- [x] Methode checkName
 - [ ] Methode getRoute
 - [ ] Methode departureList
 - [ ] Methode getTariff
