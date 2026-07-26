@@ -190,3 +190,90 @@ pub struct CNResponse {
     pub(crate) return_code: String,
     pub(crate) results: Option<Vec<RegionalSDName>>,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DLRequest {
+    pub(crate) station: Option<SDName>,
+    pub(crate) stations: Option<Vec<SDName>>,
+    pub(crate) time: GTITime,
+    pub(crate) max_list: u16,
+    pub(crate) max_time_offset: u16,
+    pub(crate) all_stations_in_changing_node: bool,
+    pub(crate) return_filters: bool,
+    pub(crate) filter: Option<Vec<FilterEntry>>,
+    pub(crate) service_types: Option<Vec<String>>, // TODO: Use enums!
+    pub(crate) use_realtime: bool,
+    pub(crate) coordinate_type: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DLResponse {
+    pub time: GTITime,
+    pub departures: Vec<Departure>,
+    pub filter: Option<Vec<FilterEntry>>,
+    pub service_types: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Departure {
+    pub line: Service,
+    pub direction: u8, // 0 hinfahrt, 6 rückfahrt
+    pub time_offset: i16,
+    pub station: SDName,
+    pub stop_point: SDName,
+    pub service_id: u16,
+    pub platform: String,
+    pub delay: i16, // delay time in seconds
+    pub extra: bool,
+    pub cancelled: bool,
+    pub realtime_platform: Option<String>,
+    pub vehicles: Vec<Vehicle>,
+    pub attributes: Option<Attribute>
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Vehicle {
+    pub id: Option<String>,
+    pub number: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Attribute {
+    pub value: String,
+    pub types: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Service {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub direction: Option<String>,
+    pub direction_id: Option<u8>,
+    #[serde(rename = "type")]
+    pub service_type: Option<ServiceType>,
+    pub carrier_name_short: Option<String>,
+    pub carrier_name_long: Option<String>
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FilterEntry {
+    #[serde(rename = "serviceID")]
+    pub service_id: String,
+    #[serde(rename = "stationIDs")]
+    pub stations_ids: Vec<String>,
+    pub service_name: Option<String>,
+    pub label: Option<String>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GTITime {
+    pub time: String,
+    pub date: String
+}
