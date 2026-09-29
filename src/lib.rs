@@ -139,7 +139,7 @@ pub async fn check_postal_code(cfg: &Config, postal_code: u16) -> Result<bool> {
 /// * `search_name` - `SDName` object that includes the search queries with all information that is already known.
 /// This can be a partial object, all properties are optional by design.
 /// * `max_search` - `u16` number of objects the query will be returning
-/// * `max_dist` - `u16` maximum distance in km for the search radius (max distance the stations should be apart.
+/// * `max_dist` - `u16` maximum distance in km for the search radius (max distance the stations should be apart).
 /// * `include_tariff_details` - `bool` flag, that controls if the returned result should include all tarriff details.
 /// * `allow_type_switch` - `bool` flag. Controls if a type switch (e.g. from line to station) is allowed inside the returned results.
 /// If set to false, it will only return results of a single "type" (e.g. "STATIONS")
