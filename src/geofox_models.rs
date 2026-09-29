@@ -116,7 +116,7 @@ pub struct Coordinate {
     x: f32,
     y: f32,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SDName {
     pub name: Option<String>,
@@ -213,25 +213,25 @@ pub struct DLResponse {
     pub time: GTITime,
     pub departures: Vec<Departure>,
     pub filter: Option<Vec<FilterEntry>>,
-    pub service_types: Vec<String>,
+    pub service_types: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Departure {
     pub line: Service,
-    pub direction: u8, // 0 hinfahrt, 6 rückfahrt
+    pub direction: Option<u8>, // 0 hinfahrt, 6 rückfahrt
     pub time_offset: i16,
-    pub station: SDName,
-    pub stop_point: SDName,
-    pub service_id: u16,
-    pub platform: String,
-    pub delay: i16, // delay time in seconds
-    pub extra: bool,
-    pub cancelled: bool,
+    pub station: Option<SDName>,
+    pub stop_point: Option<SDName>,
+    pub service_id: Option<u16>,
+    pub platform: Option<String>,
+    pub delay: Option<i16>, // delay time in seconds
+    pub extra: Option<bool>,
+    pub cancelled: Option<bool>,
     pub realtime_platform: Option<String>,
-    pub vehicles: Vec<Vehicle>,
-    pub attributes: Option<Attribute>
+    pub vehicles: Option<Vec<Vehicle>>,
+    pub attributes: Option<Attribute>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -258,7 +258,7 @@ pub struct Service {
     #[serde(rename = "type")]
     pub service_type: Option<ServiceType>,
     pub carrier_name_short: Option<String>,
-    pub carrier_name_long: Option<String>
+    pub carrier_name_long: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -269,7 +269,7 @@ pub struct FilterEntry {
     #[serde(rename = "stationIDs")]
     pub stations_ids: Vec<String>,
     pub service_name: Option<String>,
-    pub label: Option<String>
+    pub label: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

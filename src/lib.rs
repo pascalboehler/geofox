@@ -1,10 +1,11 @@
 use crate::geofox_models::{
-    CNRequest, CNResponse, LLRequest, LLResponse, LSRequest, LSResponse, PCRequest, PCResponse,
-    RegionalSDName, SDName,
+    CNRequest, CNResponse, DLRequest, DLResponse, FilterEntry, GTITime, LLRequest, LLResponse,
+    LSRequest, LSResponse, PCRequest, PCResponse, RegionalSDName, SDName,
 };
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use base64::Engine;
 use base64::engine::general_purpose;
+use chrono;
 use hmac::{Hmac, KeyInit, Mac};
 use reqwest::Response;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -279,6 +280,104 @@ pub async fn list_lines(
     Ok(data)
 }
 
+/// Function to get a departure list for a given station / stations
+///
+/// This function calls the /gti/public/departureList
+///
+/// # Arguments
+/// * `stations` - `Vec<SDName>` a list of stations the departure list should be collected from.
+/// If a single station is required, hand over a list with a single SDName item.
+/// Can also include a partial SDName, it will be checked against the SDName endpoint.
+/// * `time` - `chrono::DateTime<chrono::Utc>` With a UTC timestamp that is used to request the departure list. If set to "", current datetime will be used.
+/// * `max_list` - `u16` to limit the amount of items returned
+/// * `max_time_offset` - `u16` maximum time offset in minutes for the list depth
+/// * `include_all_stations` - `bool` flag that controls if only the stations should be used or all stations connected to a transfer hub (e.g. Rödingsmarkt & Rödingsmarkt U)
+/// * `return_filters` - `bool` flag that controls if available filters should be returned
+/// * `filter` - `Option<Vec<FilterEntry>>` that includes an optional list of FilterEntries. Should be set to none if not in use
+/// * `filter_service_types` - `Option<Vec<String>>` includes an optional list of Service Type Strings to filter by services types (like bus, ferry etc.)
+/// * `use_realtime_date` = `bool` flag that controls if realtime data should be used (instead of timetable data)
+///
+/// # Returns
+/// * `Result<DLRespone>` with the departure list response. Will return an error if something goes wrong
+pub async fn departure_list(
+    cfg: &Config,
+    stations: Vec<SDName>,
+    time: chrono::DateTime<chrono::Utc>,
+    max_list: u16,
+    max_time_offset: u16,
+    include_all_stations: bool,
+    return_filters: bool,
+    filter: Option<Vec<FilterEntry>>,
+    filter_service_types: Option<Vec<String>>,
+    use_realtime_data: bool,
+) -> Result<DLResponse> {
+    let url = format!("{}{}", cfg.geofox_url, "/gti/public/departureList");
+
+    let mut request_object: DLRequest;
+
+    if stations.is_empty() {
+        return Err(anyhow!("Stations must not be empty on request"));
+    } else if stations.len() == 1 {
+        request_object = DLRequest {
+            station: Some(stations[0].clone()),
+            stations: None,
+            time: GTITime {
+                time: "".to_string(),
+                date: "".to_string(),
+            },
+            max_list,
+            max_time_offset,
+            all_stations_in_changing_node: false,
+            return_filters,
+            filter,
+            service_types: None,
+            use_realtime: false,
+            coordinate_type: "EPSG_4326".to_string(),
+        };
+    } else {
+        request_object = DLRequest {
+            station: None,
+            stations: Some(stations.clone()),
+            time: GTITime {
+                time: "".to_string(),
+                date: "".to_string(),
+            },
+            max_list,
+            max_time_offset,
+            all_stations_in_changing_node: false,
+            return_filters,
+            filter,
+            service_types: None,
+            use_realtime: false,
+            coordinate_type: "EPSG_4326".to_string(),
+        };
+    }
+
+    request_object.all_stations_in_changing_node = include_all_stations;
+    request_object.service_types = filter_service_types;
+    request_object.use_realtime = use_realtime_data;
+    request_object.time = GTITime::from_chronos_time(time)?;
+
+    let ser_body = serde_json::to_string(&request_object)?;
+
+    let header = build_auth_header(&ser_body, &cfg.geofox_user, &cfg.geofox_secret)?;
+
+    let client = reqwest::Client::new();
+
+    let response_from_gti = client
+        .post(url)
+        .body(ser_body)
+        .headers(header)
+        .send()
+        .await?;
+
+    let json_string = response_from_gti.text().await?;
+
+    let departure_list_resp: DLResponse = serde_json::from_str(&json_string)?;
+
+    Ok(departure_list_resp)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -380,5 +479,47 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(results.is_empty(), false);
+    }
+
+    #[tokio::test]
+    async fn test_get_departures_list_function() {
+        let config = build_config();
+
+        let search_term = SDName {
+            name: Some("Altona".to_string()),
+            city: None,
+            combined_name: None,
+            sd_type: Some("UNKNOWN".to_string()),
+            coordinate: None,
+            layer: None,
+            tariff_details: None,
+            has_station_information: None,
+            provider: None,
+            address: None,
+        };
+
+        let station_for_dep_list = check_name(&config, search_term, 1, 3000, false, false)
+            .await
+            .unwrap()
+            .first()
+            .unwrap()
+            .to_sd_name();
+
+        let departure_list = departure_list(
+            &config,
+            vec![station_for_dep_list],
+            chrono::offset::Utc::now(),
+            100,
+            90,
+            false,
+            true,
+            None,
+            None,
+            true,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(departure_list.departures.is_empty(), false);
     }
 }
