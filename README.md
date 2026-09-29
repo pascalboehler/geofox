@@ -10,6 +10,8 @@ The API credentials must be ordered via the official hvv channels.
 
 **CURRENTLY UNDER DEVELOPMENT - DO NOT USE IN PRODUCTION**
 
+**General Note about the API: Never expect fields to exist, as the Geofox API might not return certain data.**
+
 ## Functions to implement
 
 - [x] Methode init

@@ -275,5 +275,20 @@ pub struct FilterEntry {
 #[derive(Serialize, Deserialize)]
 pub struct GTITime {
     pub time: String,
-    pub date: String
+    pub date: String,
+}
+
+impl GTITime {
+    pub fn from_chronos_time(
+        chronos_time: chrono::DateTime<chrono::Utc>,
+    ) -> anyhow::Result<GTITime> {
+        let chronos_time_europe = chronos_time.with_timezone(&chrono_tz::Europe::Berlin);
+        let date = chronos_time_europe
+            .date_naive()
+            .format("%d.%m.%Y")
+            .to_string();
+        let time = chronos_time_europe.time().format("%H:%M").to_string();
+
+        Ok(GTITime { time, date })
+    }
 }
