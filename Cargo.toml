@@ -14,7 +14,7 @@ rust-version = "1.93.0"
 
 [dependencies]
 anyhow = "1.0.103"
-base64 = "0.22.1"
+base64 = "0.23.1"
 dotenv = "0.15.0"
 hmac = "0.13.0"
 reqwest = "0.13.4"

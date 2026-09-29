@@ -13,8 +13,6 @@ use sha1::Sha1;
 use std::str::FromStr;
 
 mod geofox_models;
-pub mod model;
-pub mod timetable;
 pub struct Config {
     geofox_user: String,
     geofox_secret: String,
