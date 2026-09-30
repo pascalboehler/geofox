@@ -94,7 +94,7 @@ pub struct StationListEntry {
     pub city: Option<String>,
     pub combined_name: Option<String>,
     pub shortcuts: Option<Vec<String>>,
-    pub aliasses: Option<Vec<String>>,
+    pub aliases: Option<Vec<String>>,
     pub vehicle_types: Option<Vec<String>>,
     pub coordinate: Option<Coordinate>,
     pub exists: Option<bool>,

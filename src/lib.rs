@@ -197,7 +197,7 @@ pub async fn list_stations(
     cfg: &Config,
     filter_equivalent_stations: bool,
     data_release_date: &str,
-) -> Result<geofox_models::LSResponse> {
+) -> Result<LSResponse> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listStations");
     let client = reqwest::Client::new();
 
@@ -250,7 +250,7 @@ pub async fn list_lines(
     cfg: &Config,
     include_sublines: bool,
     data_release_date: &str,
-) -> Result<geofox_models::LLResponse> {
+) -> Result<LLResponse> {
     let url = format!("{}{}", cfg.geofox_url, "/gti/public/listLines");
     let client = reqwest::Client::new();
 
@@ -486,7 +486,7 @@ mod tests {
         let config = build_config();
 
         let search_term = SDName {
-            name: Some("Altona".to_string()),
+            name: Some("Hauptbahnhof".to_string()),
             city: None,
             combined_name: None,
             sd_type: Some("UNKNOWN".to_string()),
@@ -511,7 +511,7 @@ mod tests {
             chrono::offset::Utc::now(),
             100,
             90,
-            false,
+            true,
             true,
             None,
             None,
