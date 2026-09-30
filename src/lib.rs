@@ -354,7 +354,7 @@ pub async fn departure_list(
     request_object.all_stations_in_changing_node = include_all_stations;
     request_object.service_types = filter_service_types;
     request_object.use_realtime = use_realtime_data;
-    request_object.time = GTITime::from_chronos_time(time)?;
+    request_object.time = GTITime::from_chrono_time(time);
 
     let ser_body = serde_json::to_string(&request_object)?;
 

@@ -279,16 +279,41 @@ pub struct GTITime {
 }
 
 impl GTITime {
-    pub fn from_chronos_time(
+
+    /// Function to convert chrono::DateTime object to GTITime object
+    ///
+    /// This helper function can be used to convert a DateTime Object in Utc to a GTITime object in the current Berlin timezone.
+    ///
+    /// # Arguments
+    /// * `chrono_time` - `chrono::DateTime<chrono::Utc>` object with the date & time that should be converted
+    ///
+    /// # Returns
+    /// * `GTITime` object that represents the chrono datetime object
+    pub fn from_chrono_time(
         chrono_time: chrono::DateTime<chrono::Utc>,
-    ) -> anyhow::Result<GTITime> {
+    ) -> GTITime {
         let chronos_time_europe = chrono_time.with_timezone(&chrono_tz::Europe::Berlin);
         let date = chronos_time_europe
             .date_naive()
-            .format("%d.%m.%Y")
+            .format("%Y-%m-%d")
             .to_string();
         let time = chronos_time_europe.time().format("%H:%M").to_string();
 
-        Ok(GTITime { time, date })
+        GTITime { time, date }
+    }
+
+    /// Function to convert GTITime to datetime object used in some parts of the API
+    ///
+    /// This function should only be used if there is no other method to calculate the time. If possible, use proper ISO timestamps
+    ///
+    /// String format for the datetime object is "yyyy-MM-dd’T’HH:mm:ss.SSSZ"
+    ///
+    /// # Arguments
+    /// none
+    ///
+    /// # Returns
+    /// * `String` including the ISO like timestamp the geofox API is using for the datetime object
+    pub fn to_datetime(&self) -> String {
+        format!("{}T{}:00.000+0200", self.date, self.time)
     }
 }
