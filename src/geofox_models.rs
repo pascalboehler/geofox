@@ -280,9 +280,9 @@ pub struct GTITime {
 
 impl GTITime {
     pub fn from_chronos_time(
-        chronos_time: chrono::DateTime<chrono::Utc>,
+        chrono_time: chrono::DateTime<chrono::Utc>,
     ) -> anyhow::Result<GTITime> {
-        let chronos_time_europe = chronos_time.with_timezone(&chrono_tz::Europe::Berlin);
+        let chronos_time_europe = chrono_time.with_timezone(&chrono_tz::Europe::Berlin);
         let date = chronos_time_europe
             .date_naive()
             .format("%d.%m.%Y")
